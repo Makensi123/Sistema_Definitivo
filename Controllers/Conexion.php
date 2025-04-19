@@ -1,7 +1,7 @@
 <?php   
 $host = "localhost";
 $user = "root";
-$password = "proverbios";
+$password = "";
 $dbname = "electrotop";
 
 $mysqly = new mysqli($host, $user, $password, $dbname);

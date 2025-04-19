@@ -1,9 +1,9 @@
 <?php
-session_start();    
-if (!isset($_SESSION['user'])) {
+session_start(); 
+if(!isset($_SESSION['user'])){
     header("Location: index.php");
     exit;
-}       
+}
 $usuario = $_SESSION['user'];
 ?>
 
@@ -44,7 +44,7 @@ $usuario = $_SESSION['user'];
                 <i class="bi bi-file-earmark-plus-fill"></i>
                 <h3 class="fw-bold">Nueva Cotización</h3>
                 <p class="text-muted mb-4">Crea cotizaciones profesionales en minutos</p>
-                <a href="crear_cotizacion.php" class="btn btn-premium">
+                <a href="CrearCotizacion.php" class="btn btn-premium">
                     <i class="bi bi-arrow-right-circle me-2"></i>Acceder
                 </a>
             </div>
@@ -87,33 +87,8 @@ $usuario = $_SESSION['user'];
             </a>
         </div>
     </main>
-
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS for additional effects -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Efecto hover más pronunciado para las cards
-            const cards = document.querySelectorAll('.card-feature');
-            cards.forEach(card => {
-                card.addEventListener('mouseenter', () => {
-                    card.querySelector('i').style.transform = 'scale(1.1)';
-                });
-                card.addEventListener('mouseleave', () => {
-                    card.querySelector('i').style.transform = 'scale(1)';
-                });
-            });
-            
-            // Efecto de carga progresiva
-            setTimeout(() => {
-                document.querySelectorAll('.card-feature').forEach((card, index) => {
-                    setTimeout(() => {
-                        card.style.opacity = '1';
-                        card.style.transform = 'translateY(0)';
-                    }, index * 100);
-                });
-            }, 500);
-        });
-    </script>
+    <script src="Js/dashboard.js"></script>
 </body>
 </html>
