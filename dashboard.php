@@ -54,7 +54,7 @@ $usuario = $_SESSION['user'];
                 <i class="bi bi-box-seam"></i>
                 <h3 class="fw-bold">Gestión de Productos</h3>
                 <p class="text-muted mb-4">Administra tu catálogo completo</p>
-                <a href="productos.php" class="btn btn-premium">
+                <a href="GestionProductos.php" class="btn btn-premium">
                     <i class="bi bi-arrow-right-circle me-2"></i>Acceder
                 </a>
             </div>
@@ -64,7 +64,7 @@ $usuario = $_SESSION['user'];
                 <i class="bi bi-file-earmark-text"></i>
                 <h3 class="fw-bold">Cotizaciones</h3>
                 <p class="text-muted mb-4">Consulta y gestiona tus presupuestos</p>
-                <a href="cotizaciones.php" class="btn btn-premium">
+                <a href="GestionCotizaciones.php" class="btn btn-premium">
                     <i class="bi bi-arrow-right-circle me-2"></i>Acceder
                 </a>
             </div>

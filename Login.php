@@ -11,7 +11,7 @@ if (isset($_POST['submit'])) {
         exit;
     }
 
-    $stmt = $mysqly->prepare("SELECT ID, contraseña FROM USUARIOS WHERE usuario = ?");
+    $stmt = $mysqli->prepare("SELECT ID, contraseña FROM USUARIOS WHERE usuario = ?");
     $stmt->bind_param('s', $usuario);  // 's' es para string
     $stmt->execute();
     $stmt->store_result();

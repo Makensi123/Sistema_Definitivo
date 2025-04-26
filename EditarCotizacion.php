@@ -4,45 +4,194 @@ if (!isset($_SESSION['user'])) {
     header("Location: index.php");
     exit;
 }
+
 include "Controllers/Conexion.php";
-$usuario = $_SESSION['user'];
+
 date_default_timezone_set('America/Lima');
 $fecha_actual = date('Y-m-d');
 $hora_actual = date('H:i');
+
+// Verificar si se está editando una cotización existente
+if (isset($_GET['id']) && is_numeric($_GET['id'])) {
+    $id = $_GET['id'];
+    
+    // Obtener cotización
+    $stmt = $mysqli->prepare("SELECT * FROM cotizaciones WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $cotizacion = $stmt->get_result()->fetch_assoc();
+    
+    if (!$cotizacion) {
+        $_SESSION['error'] = "Cotización no encontrada";
+        header("Location: GestionCotizaciones.php");
+        exit;
+    }
+    
+    // Obtener productos de la cotización
+    $stmt_productos = $mysqli->prepare("SELECT * FROM cotizacion_productos WHERE cotizacion_id = ? ORDER BY item");
+    $stmt_productos->bind_param("i", $id);
+    $stmt_productos->execute();
+    $productos = $stmt_productos->get_result()->fetch_all(MYSQLI_ASSOC);
+    
+    // Preparar productos para JavaScript
+    $productos_json = json_encode($productos);
+} else {
+    header("Location: GestionCotizaciones.php");
+    exit;
+}
+
+// Procesar actualización de cotización
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Validar datos recibidos
+    $required_fields = ['cliente', 'fecha', 'tipo_documento', 'numero_documento', 'tipo_operacion', 'productos_json'];
+    
+    foreach ($required_fields as $field) {
+        if (empty($_POST[$field])) {
+            $_SESSION['error'] = "El campo " . str_replace('_', ' ', $field) . " es requerido";
+            header("Location: EditarCotizacion.php?id=$id");
+            exit;
+        }
+    }
+    
+    // Procesar productos
+    $productos = json_decode($_POST['productos_json'], true);
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($productos)) {
+        $_SESSION['error'] = "Error al procesar los productos de la cotización";
+        header("Location: EditarCotizacion.php?id=$id");
+        exit;
+    }
+    
+    // Calcular total
+    $total = 0;
+    foreach ($productos as $producto) {
+        $total += floatval($producto['total']);
+    }
+    
+    // Actualizar cotización
+    $stmt = $mysqli->prepare("UPDATE cotizaciones SET
+        cliente = ?,
+        fecha = ?,
+        hora = ?,
+        tipo_documento = ?,
+        numero_documento = ?,
+        tipo_operacion = ?,
+        direccion = ?,
+        email = ?,
+        ruc = ?,
+        celular = ?,
+        condiciones = ?,
+        forma_pago = ?,
+        validez = ?,
+        cuenta = ?,
+        total = ?
+        WHERE id = ?");
+    
+    $stmt->bind_param("sssssssssssssdi", 
+        $_POST['cliente'],
+        $_POST['fecha'],
+        $_POST['hora'],
+        $_POST['tipo_documento'],
+        $_POST['numero_documento'],
+        $_POST['tipo_operacion'],
+        $_POST['direccion'],
+        $_POST['email'],
+        $_POST['ruc'],
+        $_POST['celular'],
+        $_POST['condiciones'],
+        $_POST['forma_pago'],
+        $_POST['validez'],
+        $_POST['cuenta'],
+        $total,
+        $id
+    );
+    
+    if ($stmt->execute()) {
+        // Eliminar productos antiguos
+        $stmt_delete = $mysqli->prepare("DELETE FROM cotizacion_productos WHERE cotizacion_id = ?");
+        $stmt_delete->bind_param("i", $id);
+        $stmt_delete->execute();
+        
+        // Insertar nuevos productos
+        $stmt_productos = $mysqli->prepare("INSERT INTO cotizacion_productos (
+            cotizacion_id,
+            producto_id,
+            codigo,
+            descripcion,
+            precio,
+            cantidad,
+            total,
+            notas,
+            item
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        
+        foreach ($productos as $producto) {
+            $stmt_productos->bind_param("isssdddsi",
+                $id,
+                $producto['id'],
+                $producto['codigo'],
+                $producto['descripcion'],
+                $producto['precio'],
+                $producto['cantidad'],
+                $producto['total'],
+                $producto['notas'] ?? '',
+                $producto['item']
+            );
+            $stmt_productos->execute();
+        }
+        
+        $_SESSION['success'] = "Cotización #$id actualizada correctamente";
+        header("Location: VerCotizacion.php?id=$id");
+        exit;
+    } else {
+        $_SESSION['error'] = "Error al actualizar la cotización: " . $stmt->error;
+        header("Location: EditarCotizacion.php?id=$id");
+        exit;
+    }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Cotización - Electrotop Perú</title>
+    <title>Editar Cotización - Electrotop Perú</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="Styles/CrearCotizacion.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
     <div class="container-fluid px-0">
-        <!-- Barra superior azul -->
+        <!-- Barra superior -->
         <div class="top-bar bg-primary py-2 text-white">
             <div class="container d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center">
-                    <img src="assets/logo1-original.png" alt="Icono Electrotop" class="me-2" style="height: 30px;">
-                    <span class="fw-bold">SISTEMA DE COTIZACIONES</span>
+                    <img src="assets/logo-icono.png" alt="Icono Electrotop" class="me-2" style="height: 30px;">
+                    <span class="fw-bold">EDITAR COTIZACIÓN #<?php echo str_pad($id, 5, '0', STR_PAD_LEFT); ?></span>
                 </div>
                 <div class="user-info">
                     <i class="bi bi-person-circle me-1"></i>
-                    <?php echo htmlspecialchars($usuario); ?>
+                    <?php echo $_SESSION['user']['nombre'] ?? 'Usuario'; ?>
                 </div>
             </div>
         </div>
 
         <div class="container py-4">
-            <form action="nuevaCotizacion.php" method="post" id="cotizacionForm">
+            <!-- Mensajes de alerta -->
+            <?php if (isset($_SESSION['error'])): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+            
+            <form action="EditarCotizacion.php?id=<?php echo $id; ?>" method="post" id="cotizacionForm">
                 <div class="cotizacion-container" id="cotizacionContent">
-                    <!-- Encabezado de la empresa con nuevo diseño -->
+                    <!-- Encabezado de la empresa -->
                     <div class="header-section position-relative">
                         <div class="company-brand">
                             <img src="assets/logo1-original.png" alt="Electrotop Perú" class="company-logo">
@@ -51,90 +200,90 @@ $hora_actual = date('H:i');
                                 <div class="company-slogan">Soluciones Integrales en Seguridad y Telecomunicaciones</div>
                             </div>
                         </div>
-
+                        
                         <div class="company-details">
                             <div class="detail-item">
                                 <i class="bi bi-geo-alt-fill"></i>
                                 <div>
                                     <label>DIRECCIÓN</label>
-                                    <div>Calle Nueva 209 Int.201 C.C. Los Portales</div>
+                                    <textarea class="form-control auto-expand" id="direccion" name="direccion" required><?php echo htmlspecialchars($cotizacion['direccion']); ?></textarea>
                                 </div>
                             </div>
                             <div class="detail-item">
                                 <i class="bi bi-envelope-fill"></i>
                                 <div>
                                     <label>CORREO</label>
-                                    <div>ventas@electrotopperu.com</div>
+                                    <textarea class="form-control auto-expand" id="email" name="email" required><?php echo htmlspecialchars($cotizacion['email']); ?></textarea>
                                 </div>
                             </div>
                             <div class="detail-item">
                                 <i class="bi bi-file-text-fill"></i>
                                 <div>
                                     <label>RUC</label>
-                                    <div>20559256405</div>
+                                    <textarea class="form-control auto-expand" id="ruc" name="ruc" required><?php echo htmlspecialchars($cotizacion['ruc']); ?></textarea>
                                 </div>
                             </div>
                             <div class="detail-item">
                                 <i class="bi bi-phone-fill"></i>
                                 <div>
                                     <label>TELÉFONO</label>
-                                    <div>953760540 / 955696775</div>
+                                    <textarea class="form-control auto-expand" id="celular" name="celular" required><?php echo htmlspecialchars($cotizacion['celular']); ?></textarea>
                                 </div>
                             </div>
                         </div>
-
+                        
                         <div class="document-type-badge">
-                            <span id="documentTypeBadge">COTIZACIÓN</span>
+                            <span id="documentTypeBadge"><?php echo $cotizacion['tipo_operacion']; ?></span>
                         </div>
                     </div>
 
-                    <!-- Información del cliente con nuevo diseño -->
+                    <!-- Información del cliente -->
                     <div class="client-info-section">
                         <h5 class="section-title"><i class="bi bi-person-lines-fill me-2"></i>INFORMACIÓN DEL CLIENTE</h5>
-
+                        
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <textarea class="form-control auto-expand" id="cliente" name="cliente"
-                                        placeholder="Nombre del cliente" required style="height: 80px"></textarea>
+                                    <textarea class="form-control auto-expand" id="cliente" name="cliente" 
+                                        placeholder="Nombre del cliente" required style="height: 80px"><?php echo htmlspecialchars($cotizacion['cliente']); ?></textarea>
                                     <label for="cliente">CLIENTE</label>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-floating">
-                                    <input type="date" class="form-control" id="fecha" name="fecha"
-                                        value="<?php echo $fecha_actual; ?>" required>
+                                    <input type="date" class="form-control" id="fecha" name="fecha" 
+                                        value="<?php echo $cotizacion['fecha']; ?>" required>
                                     <label for="fecha">FECHA</label>
                                 </div>
-                                <input type="time" class="form-control mt-2" id="hora" name="hora"
-                                    value="<?php echo $hora_actual; ?>">
+                                <input type="time" class="form-control mt-2" id="hora" name="hora" 
+                                    value="<?php echo substr($cotizacion['hora'], 0, 5); ?>">
                             </div>
                             <div class="col-md-3">
                                 <div class="form-floating">
                                     <select class="form-select" id="tipo_documento" name="tipo_documento" required>
-                                        <option value="DNI">DNI</option>
-                                        <option value="RUC">RUC</option>
-                                        <option value="CE">Carnet Extranjería</option>
+                                        <option value="DNI" <?php echo $cotizacion['tipo_documento'] === 'DNI' ? 'selected' : ''; ?>>DNI</option>
+                                        <option value="RUC" <?php echo $cotizacion['tipo_documento'] === 'RUC' ? 'selected' : ''; ?>>RUC</option>
+                                        <option value="CE" <?php echo $cotizacion['tipo_documento'] === 'CE' ? 'selected' : ''; ?>>Carnet Extranjería</option>
                                     </select>
                                     <label for="tipo_documento">TIPO DOCUMENTO</label>
                                 </div>
                             </div>
                         </div>
-
+                        
                         <div class="row g-3 mt-2">
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <textarea class="form-control auto-expand" id="numero_documento"
-                                        name="numero_documento" placeholder="Número de documento" required></textarea>
+                                    <textarea class="form-control auto-expand" id="numero_documento" 
+                                        name="numero_documento" placeholder="Número de documento" required><?php echo htmlspecialchars($cotizacion['numero_documento']); ?></textarea>
                                     <label for="numero_documento">NÚMERO DOCUMENTO</label>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-floating">
                                     <select class="form-select" id="tipo_operacion" name="tipo_operacion" required>
-                                        <option value="COTIZACION">COTIZACIÓN</option>
-                                        <option value="VENTA">VENTA</option>
-                                        <option value="PROFORMA">PROFORMA</option>
+                                        <option value="COTIZACION" <?php echo $cotizacion['tipo_operacion'] === 'COTIZACION' ? 'selected' : ''; ?>>COTIZACIÓN</option>
+                                        <option value="VENTA" <?php echo $cotizacion['tipo_operacion'] === 'VENTA' ? 'selected' : ''; ?>>VENTA</option>
+                                        <option value="PROFORMA" <?php echo $cotizacion['tipo_operacion'] === 'PROFORMA' ? 'selected' : ''; ?>>PROFORMA</option>
                                     </select>
                                     <label for="tipo_operacion">TIPO OPERACIÓN</label>
                                 </div>
@@ -142,7 +291,7 @@ $hora_actual = date('H:i');
                         </div>
                     </div>
 
-                    <!-- Sección de productos mejorada -->
+                    <!-- Productos -->
                     <div class="products-section">
                         <div class="section-header">
                             <h5 class="section-title"><i class="bi bi-cart-plus-fill me-2"></i>PRODUCTOS/SERVICIOS</h5>
@@ -150,7 +299,7 @@ $hora_actual = date('H:i');
                                 <i class="bi bi-plus-circle-fill me-1"></i> Agregar Producto
                             </button>
                         </div>
-
+                        
                         <div class="table-responsive">
                             <table class="table products-table">
                                 <thead class="table-primary">
@@ -181,79 +330,94 @@ $hora_actual = date('H:i');
                         </div>
                     </div>
 
-                    <!-- Totales con nuevo diseño -->
+                    <!-- Totales -->
                     <div class="totals-section">
                         <div class="total-display">
                             <span class="total-label">TOTAL:</span>
                             <span class="total-currency">S/</span>
-                            <input type="text" class="total-amount" id="total" name="total" value="0.00" readonly>
+                            <input type="text" class="total-amount" id="total" name="total" value="<?php echo number_format($cotizacion['total'], 2); ?>" readonly>
                         </div>
                     </div>
 
-                    <!-- Condiciones de pago mejoradas -->
+                    <!-- Condiciones -->
                     <div class="conditions-section">
                         <h5 class="section-title"><i class="bi bi-file-text-fill me-2"></i>CONDICIONES COMERCIALES</h5>
-
+                        
                         <div class="row g-3">
                             <div class="col-md-8">
                                 <div class="form-floating">
-                                    <textarea class="form-control auto-expand" id="condiciones" name="condiciones"
-                                        placeholder="Condiciones comerciales" style="height: 80px">Precios incluyen IGV. Tiempo de entrega: 5 días hábiles. Garantía de 1 año.</textarea>
+                                    <textarea class="form-control auto-expand" id="condiciones" name="condiciones" 
+                                        placeholder="Condiciones comerciales" style="height: 80px"><?php echo htmlspecialchars($cotizacion['condiciones']); ?></textarea>
                                     <label for="condiciones">CONDICIONES COMERCIALES</label>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-floating">
                                     <select class="form-select" id="forma_pago" name="forma_pago">
-                                        <option value="CONTADO">CONTADO</option>
-                                        <option value="CREDITO_15D">CRÉDITO 15 DÍAS</option>
-                                        <option value="CREDITO_30D">CRÉDITO 30 DÍAS</option>
-                                        <option value="TARJETA_CREDITO">TARJETA DE CRÉDITO</option>
-                                        <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+                                        <option value="CONTADO" <?php echo $cotizacion['forma_pago'] === 'CONTADO' ? 'selected' : ''; ?>>CONTADO</option>
+                                        <option value="CREDITO_15D" <?php echo $cotizacion['forma_pago'] === 'CREDITO_15D' ? 'selected' : ''; ?>>CRÉDITO 15 DÍAS</option>
+                                        <option value="CREDITO_30D" <?php echo $cotizacion['forma_pago'] === 'CREDITO_30D' ? 'selected' : ''; ?>>CRÉDITO 30 DÍAS</option>
+                                        <option value="TARJETA_CREDITO" <?php echo $cotizacion['forma_pago'] === 'TARJETA_CREDITO' ? 'selected' : ''; ?>>TARJETA DE CRÉDITO</option>
+                                        <option value="TRANSFERENCIA" <?php echo $cotizacion['forma_pago'] === 'TRANSFERENCIA' ? 'selected' : ''; ?>>TRANSFERENCIA</option>
                                     </select>
                                     <label for="forma_pago">FORMA DE PAGO</label>
                                 </div>
                             </div>
                         </div>
-
+                        
                         <div class="row g-3 mt-2">
                             <div class="col-md-3">
                                 <div class="form-floating">
-                                    <input type="number" class="form-control" id="validez" name="validez" value="15" min="1">
+                                    <input type="number" class="form-control" id="validez" name="validez" 
+                                        value="<?php echo $cotizacion['validez']; ?>" min="1">
                                     <label for="validez">VALIDEZ (días)</label>
                                 </div>
                             </div>
                             <div class="col-md-9">
                                 <div class="form-floating">
-                                    <textarea class="form-control auto-expand" id="cuenta" name="cuenta"
-                                        placeholder="Cuenta bancaria" style="height: 80px">300-3003687630 CTA. CTE. INTERBANK</textarea>
+                                    <textarea class="form-control auto-expand" id="cuenta" name="cuenta" 
+                                        placeholder="Cuenta bancaria" style="height: 80px"><?php echo htmlspecialchars($cotizacion['cuenta']); ?></textarea>
                                     <label for="cuenta">CUENTA BANCARIA</label>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- Botones de acción mejorados -->
-                    <div class="action-buttons no-print">
-                        <a href="dashboard.php" class="btn btn-back">
-                            <i class="bi bi-arrow-left-circle-fill me-1"></i> Volver al Panel
-                        </a>
-                        <div class="action-group">
-                            <button type="button" class="btn btn-preview me-2" id="btnPreviewPDF">
-                                <i class="bi bi-eye-fill me-1"></i> Vista Previa
-                            </button>
-                            <button type="button" class="btn btn-download me-2" id="btnDownloadPDF">
-                                <i class="bi bi-file-earmark-pdf-fill me-1"></i> Descargar PDF
-                            </button>
-                            <button type="submit" class="btn btn-save">
-                                <i class="bi bi-save-fill me-1"></i> Guardar Cotización
-                            </button>
+
+                    <!-- Firmas -->
+                    <div class="signatures-section">
+                        <div class="signature-box client-signature">
+                            <div class="signature-line"></div>
+                            <div class="signature-label">FIRMA DEL CLIENTE</div>
+                        </div>
+                        <div class="signature-box company-signature">
+                            <div class="signature-line"></div>
+                            <div class="signature-label">FIRMA Y SELLO ELECTROTOP PERÚ</div>
+                            <div class="company-stamp">
+                                <img src="assets/sello.png" alt="Sello Electrotop Perú">
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="d-flex justify-content-between mt-5 no-print">
+                    <a href="GestionCotizaciones.php" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancelar
+                    </a>
+                    <div>
+                        <button type="button" class="btn btn-print text-white me-2" id="btnDownloadPDF">
+                            <i class="bi bi-download"></i> Descargar PDF
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save-fill"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal de búsqueda de productos mejorado -->
+    <!-- Modal de búsqueda de productos -->
     <div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
@@ -319,7 +483,7 @@ $hora_actual = date('H:i');
                             </div>
                             <div class="col-12">
                                 <label for="producto_descripcion" class="form-label">Descripción</label>
-                                <textarea class="form-control" id="producto_descripcion" rows="2" ></textarea>
+                                <textarea class="form-control" id="producto_descripcion" rows="2" readonly></textarea>
                             </div>
                             <div class="col-md-6">
                                 <label for="producto_precio" class="form-label">Precio Unitario (S/)</label>
@@ -356,42 +520,26 @@ $hora_actual = date('H:i');
         </div>
     </div>
 
-    <!-- Modal de vista previa del PDF -->
-    <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Vista Previa de la Cotización</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-0">
-                    <iframe id="pdfPreview" frameborder="0" style="width: 100%; height: 80vh;"></iframe>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i> Cerrar
-                    </button>
-                    <button type="button" class="btn btn-primary" id="btnDownloadFromPreview">
-                        <i class="bi bi-download me-1"></i> Descargar PDF
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // Variables globales
-        let productosCotizacion = [];
-        let itemCounter = 1;
+        let productosCotizacion = <?php echo $productos_json ?: '[]'; ?>;
+        let itemCounter = productosCotizacion.length > 0 ? 
+            Math.max(...productosCotizacion.map(p => p.item)) + 1 : 1;
         let currentEditIndex = null;
 
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
             // Configurar eventos
             setupEventListeners();
-
+            
+            // Si hay productos, actualizar la tabla
+            if (productosCotizacion.length > 0) {
+                actualizarTablaProductos();
+                calcularTotalCotizacion();
+            }
+            
             // Actualizar tipo de documento visual
             document.getElementById('tipo_operacion').addEventListener('change', function() {
                 document.getElementById('documentTypeBadge').textContent = this.value;
@@ -401,21 +549,21 @@ $hora_actual = date('H:i');
         function setupEventListeners() {
             // Botón para agregar primer producto
             document.getElementById('btnAddFirstProduct')?.addEventListener('click', showProductModal);
-
+            
             // Botón para agregar producto
             document.getElementById('btnAddProduct').addEventListener('click', showProductModal);
-
+            
             // Búsqueda de productos
             document.getElementById('searchProduct').addEventListener('input', searchProducts);
             document.getElementById('btnSearchProduct').addEventListener('click', searchProducts);
-
+            
             // Control de cantidad
             document.getElementById('incrementQty')?.addEventListener('click', function() {
                 const input = document.getElementById('producto_cantidad');
                 input.value = parseInt(input.value) + 1;
                 calcularTotalProducto();
             });
-
+            
             document.getElementById('decrementQty')?.addEventListener('click', function() {
                 const input = document.getElementById('producto_cantidad');
                 if (parseInt(input.value) > 1) {
@@ -423,19 +571,17 @@ $hora_actual = date('H:i');
                     calcularTotalProducto();
                 }
             });
-
+            
             // Cálculos de producto
             document.getElementById('producto_cantidad').addEventListener('input', calcularTotalProducto);
             document.getElementById('producto_precio').addEventListener('input', calcularTotalProducto);
-
+            
             // Agregar producto a cotización
             document.getElementById('btnAddToQuote').addEventListener('click', addProductToQuote);
-
+            
             // Generar PDF
-            document.getElementById('btnPreviewPDF').addEventListener('click', generatePDFPreview);
             document.getElementById('btnDownloadPDF').addEventListener('click', downloadPDF);
-            document.getElementById('btnDownloadFromPreview').addEventListener('click', downloadPDF);
-
+            
             // Autoajuste de textareas
             document.querySelectorAll('.auto-expand').forEach(textarea => {
                 textarea.addEventListener('input', autoExpandTextarea);
@@ -443,7 +589,7 @@ $hora_actual = date('H:i');
                 const event = new Event('input');
                 textarea.dispatchEvent(event);
             });
-
+            
             // Validación antes de enviar
             document.getElementById('cotizacionForm').addEventListener('submit', function(e) {
                 if (productosCotizacion.length === 0) {
@@ -456,7 +602,7 @@ $hora_actual = date('H:i');
                     });
                     return;
                 }
-
+                
                 // Crear input oculto con los productos en formato JSON
                 const productosInput = document.createElement('input');
                 productosInput.type = 'hidden';
@@ -469,7 +615,7 @@ $hora_actual = date('H:i');
         function showProductModal() {
             // Limpiar búsqueda previa
             document.getElementById('searchProduct').value = '';
-            document.getElementById('productSearchResults').querySelector('tbody').innerHTML =
+            document.getElementById('productSearchResults').querySelector('tbody').innerHTML = 
                 '<tr class="no-results"><td colspan="5"><div class="text-center py-4"><i class="bi bi-search" style="font-size: 2rem; color: #6c757d;"></i><p class="mt-2">Ingrese un término de búsqueda para encontrar productos</p></div></td></tr>';
             document.getElementById('selectedProductDetails').style.display = 'none';
             document.getElementById('btnAddToQuote').disabled = true;
@@ -550,10 +696,11 @@ $hora_actual = date('H:i');
             document.getElementById('producto_precio').value = precio;
             document.getElementById('producto_cantidad').value = 1;
             document.getElementById('producto_total').value = precio;
+            document.getElementById('producto_notas').value = '';
 
             document.getElementById('selectedProductDetails').style.display = 'block';
             document.getElementById('btnAddToQuote').disabled = false;
-
+            
             // Enfocar el campo de cantidad
             document.getElementById('producto_cantidad').focus();
         }
@@ -584,7 +731,7 @@ $hora_actual = date('H:i');
                 // Agregar nuevo producto
                 productosCotizacion.push(producto);
             }
-
+            
             actualizarTablaProductos();
             calcularTotalCotizacion();
 
@@ -658,7 +805,7 @@ $hora_actual = date('H:i');
                         </td>
                     </tr>
                 `;
-
+                
                 // Agregar evento al botón de agregar primer producto
                 document.getElementById('btnAddFirstProduct')?.addEventListener('click', showProductModal);
             }
@@ -710,7 +857,7 @@ $hora_actual = date('H:i');
 
                     actualizarTablaProductos();
                     calcularTotalCotizacion();
-
+                    
                     Swal.fire({
                         position: 'top-end',
                         icon: 'success',
@@ -726,55 +873,6 @@ $hora_actual = date('H:i');
         function calcularTotalCotizacion() {
             const total = productosCotizacion.reduce((sum, producto) => sum + parseFloat(producto.total), 0);
             document.getElementById('total').value = total.toFixed(2);
-        }
-
-        function generatePDFPreview() {
-            if (productosCotizacion.length === 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Cotización vacía',
-                    text: 'Debe agregar al menos un producto para generar el PDF',
-                    confirmButtonColor: '#1a4b8c'
-                });
-                return;
-            }
-
-            // Mostrar carga
-            Swal.fire({
-                title: 'Generando PDF',
-                html: 'Por favor espere mientras se genera la vista previa...',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            // Configuración para html2pdf
-            const element = document.getElementById('cotizacionContent');
-            const opt = {
-                margin: 10,
-                filename: `Cotizacion_Electrotop_${Date.now()}.pdf`,
-                image: {
-                    type: 'jpeg',
-                    quality: 0.98
-                },
-                html2canvas: {
-                    scale: 2
-                },
-                jsPDF: {
-                    unit: 'mm',
-                    format: 'a4',
-                    orientation: 'portrait'
-                }
-            };
-
-            // Generar PDF y mostrar en modal
-            html2pdf().from(element).set(opt).output('datauristring').then(function(pdfString) {
-                Swal.close();
-                document.getElementById('pdfPreview').src = pdfString;
-                const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
-                previewModal.show();
-            });
         }
 
         function downloadPDF() {
@@ -802,19 +900,10 @@ $hora_actual = date('H:i');
             const element = document.getElementById('cotizacionContent');
             const opt = {
                 margin: 10,
-                filename: `Cotizacion_Electrotop_${document.getElementById('cliente').value.substring(0, 20)}_${document.getElementById('fecha').value}.pdf`,
-                image: {
-                    type: 'jpeg',
-                    quality: 0.98
-                },
-                html2canvas: {
-                    scale: 2
-                },
-                jsPDF: {
-                    unit: 'mm',
-                    format: 'a4',
-                    orientation: 'portrait'
-                }
+                filename: `Cotizacion_${document.querySelector('.company-name').textContent}_${document.querySelector('.document-type-badge span').textContent}_<?php echo str_pad($id, 5, '0', STR_PAD_LEFT); ?>.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             // Generar y descargar PDF
