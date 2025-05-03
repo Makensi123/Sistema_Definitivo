@@ -301,43 +301,6 @@ body {
     border-top: 1px dashed #c7d8ff;
 }
 
-/* Firmas */
-.signatures-section {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid #e0e9ff;
-}
-
-.signature-box {
-    text-align: center;
-    width: 200px;
-    position: relative;
-}
-
-.signature-line {
-    border-top: 1px solid #333;
-    margin: 1rem auto;
-    width: 80%;
-}
-
-.signature-label {
-    font-size: 0.85rem;
-    color: var(--gray-dark);
-}
-
-.company-stamp {
-    position: absolute;
-    top: -20px;
-    right: 0;
-    opacity: 0.8;
-}
-
-.company-stamp img {
-    height: 80px;
-}
-
 /* Botones */
 .btn {
     border-radius: 8px;
@@ -494,63 +457,132 @@ body {
 @media print {
     body * {
         visibility: hidden;
+        background: white !important;
+        color: black !important;
     }
-
-    .cotizacion-container,
-    .cotizacion-container * {
+    
+    #cotizacionContent, 
+    #cotizacionContent * {
         visibility: visible;
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
     }
-
-    .cotizacion-container {
+    
+    #cotizacionContent {
         position: absolute;
         left: 0;
         top: 0;
-        width: 100%;
-        margin: 0;
-        padding: 20px;
-        box-shadow: none;
-        border: none;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
     }
-
-    .no-print {
+    
+    /* Ocultar elementos no deseados */
+    .no-print, 
+    .action-buttons, 
+    .btn, 
+    .top-bar {
         display: none !important;
     }
-
+    
+    /* Manejo de tablas */
     .products-table {
-        min-width: 100%;
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+        page-break-inside: auto !important;
     }
-
-    .product-description {
-        max-width: none;
+    
+    .products-table th {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    /* Evitar saltos de página no deseados */
+    .header-section, 
+    .client-info-section, 
+    .products-section, 
+    .totals-section, 
+    .conditions-section {
+        page-break-inside: avoid;
+    }
+    
+    /* Manejo de imágenes */
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+    
+    .company-logo {
+        max-height: 60px !important;
+    }
+    
+    /* Ajustes de márgenes */
+    .cotizacion-container {
+        padding: 10mm !important;
     }
 }
 
-/* Animaciones */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Estilos específicos para el modo PDF */
+.pdf-export {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 auto !important;
+    padding: 15mm !important;
+    box-sizing: border-box;
+    background: white !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    position: static !important;
+    font-family: Arial, sans-serif !important;
+    color: #000 !important;
 }
 
-.cotizacion-container {
-    animation: fadeIn 0.5s ease-out;
+.pdf-export img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    margin: 0 auto !important;
 }
 
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-    100% {
-        transform: scale(1);
-    }
+.pdf-export .no-print, 
+.pdf-export .btn, 
+.pdf-export .action-buttons {
+    display: none !important;
+}
+
+.pdf-export table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    page-break-inside: avoid !important;
+}
+
+.pdf-export th, 
+.pdf-export td {
+    padding: 4px 8px !important;
+    word-wrap: break-word !important;
+}
+
+.pdf-export .header-section, 
+.pdf-export .client-info-section {
+    page-break-after: avoid !important;
+}
+
+/* Fallback para imágenes que no cargan */
+.img-fallback {
+    display: inline-block;
+    width: 100%;
+    height: auto;
+    background: #f1f1f1;
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+    color: #666;
+    border: 1px dashed #ccc;
 }
 
 /* Responsive */
@@ -596,11 +628,5 @@ body {
     .btn {
         width: 100%;
         margin-bottom: 0.5rem;
-    }
-
-    .signatures-section {
-        flex-direction: column;
-        align-items: center;
-        gap: 2rem;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 session_start(); 
-include "Controllers/Conexion.php";
+include "../Controllers/Conexion.php";
 
 if (isset($_POST['submit'])) {
     $usuario = trim($_POST['user']);
@@ -22,7 +22,7 @@ if (isset($_POST['submit'])) {
 
         if (password_verify($contraseña, $hashed_password)) {
             $_SESSION['user'] = $usuario; // Guardamos el nombre de usuario en la sesión
-            header("Location: dashboard.php");
+            header("Location: ../interfaces/dashboard.php");
             exit;
         } else {
             echo "La contraseña es inválida";
@@ -34,6 +34,6 @@ if (isset($_POST['submit'])) {
     $stmt->close();
 }
 
-$mysqly->close();
+$mysqli->close();
 
 ?>

@@ -22,14 +22,14 @@ $usuario = $_SESSION['user'];
     <!-- Animate.css -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     
-    <link rel="stylesheet" href="Styles/Dashboard.css">
+    <link rel="stylesheet" href="../Styles/Dashboard.css">
 </head>
 <body>
     <!-- Premium Header -->
     <header class="dashboard-header text-center text-white">
         <div class="container">
             <div class="logo-container animate__animated animate__fadeInDown">
-                <img src="assets/logo1-original.png" alt="Hikvision Premium" class="logo-3d">
+                <img src="../assets/logo1-original.png" alt="Hikvision Premium" class="logo-3d">
             </div>
             <h1 class="user-greeting animate__animated animate__fadeIn animate__delay-1s">Bienvenido, <span class="fw-bold"><?php echo htmlspecialchars($usuario); ?></span></h1>
             <p class="lead animate__animated animate__fadeIn animate__delay-1s">Panel de Control Premium Hikvision</p>
@@ -44,7 +44,7 @@ $usuario = $_SESSION['user'];
                 <i class="bi bi-file-earmark-plus-fill"></i>
                 <h3 class="fw-bold">Nueva Cotización</h3>
                 <p class="text-muted mb-4">Crea cotizaciones profesionales en minutos</p>
-                <a href="CrearCotizacion.php" class="btn btn-premium">
+                <a href="../interfaces/CrearCotizacion.php" class="btn btn-premium">
                     <i class="bi bi-arrow-right-circle me-2"></i>Acceder
                 </a>
             </div>
@@ -54,7 +54,7 @@ $usuario = $_SESSION['user'];
                 <i class="bi bi-box-seam"></i>
                 <h3 class="fw-bold">Gestión de Productos</h3>
                 <p class="text-muted mb-4">Administra tu catálogo completo</p>
-                <a href="GestionProductos.php" class="btn btn-premium">
+                <a href="../interfaces/GestionProductos.php" class="btn btn-premium">
                     <i class="bi bi-arrow-right-circle me-2"></i>Acceder
                 </a>
             </div>
@@ -64,7 +64,7 @@ $usuario = $_SESSION['user'];
                 <i class="bi bi-file-earmark-text"></i>
                 <h3 class="fw-bold">Cotizaciones</h3>
                 <p class="text-muted mb-4">Consulta y gestiona tus presupuestos</p>
-                <a href="GestionCotizaciones.php" class="btn btn-premium">
+                <a href="gestionCotizacion.php" class="btn btn-premium">
                     <i class="bi bi-arrow-right-circle me-2"></i>Acceder
                 </a>
             </div>
@@ -74,7 +74,7 @@ $usuario = $_SESSION['user'];
                 <i class="bi bi-cash-coin"></i>
                 <h3 class="fw-bold">Gestión de Ventas</h3>
                 <p class="text-muted mb-4">Seguimiento de transacciones</p>
-                <a href="ventas.php" class="btn btn-premium">
+                <a href="gestionVentas.php" class="btn btn-premium">
                     <i class="bi bi-arrow-right-circle me-2"></i>Acceder
                 </a>
             </div>
@@ -82,13 +82,13 @@ $usuario = $_SESSION['user'];
         
         <!-- Logout Button -->
         <div class="text-center mt-5 pt-4">
-            <a href="logout.php" class="btn btn-danger btn-lg logout-btn px-4 fw-bold">
+            <a href="../middleware/logout.php" class="btn btn-danger btn-lg logout-btn px-4 fw-bold">
                 <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
             </a>
         </div>
     </main>
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="Js/dashboard.js"></script>
+    <script src="../Js/dashboard.js"></script>
 </body>
 </html>

@@ -1,0 +1,500 @@
+:root {
+    --primary: #0056b3;
+    --secondary: #6c757d;
+    --success: #28a745;
+    --info: #17a2b8;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --light: #f8f9fa;
+    --dark: #343a40;
+    --electro-blue: #1a4b8c;
+    --electro-light: #e6f0ff;
+    --electro-accent: #4a90e2;
+    --electro-gradient: linear-gradient(135deg, #1a4b8c 0%, #4a90e2 100%);
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+    overflow-x: hidden;
+}
+
+.dashboard-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.dashboard-container:hover {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+}
+
+.header-section {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    position: relative;
+}
+
+.header-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 4px;
+    background: var(--electro-gradient);
+    border-radius: 4px;
+}
+
+.company-logo {
+    height: 90px;
+    margin-bottom: 1rem;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(0 5px 15px rgba(26, 75, 140, 0.2));
+}
+
+.company-logo:hover {
+    transform: scale(1.1) rotate(-3deg);
+    filter: drop-shadow(0 8px 25px rgba(26, 75, 140, 0.3));
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+    background: var(--electro-gradient);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+    transform: rotate(30deg);
+    pointer-events: none;
+}
+
+.table-container {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.table thead {
+    background: var(--electro-gradient);
+    color: white;
+    position: sticky;
+    top: 0;
+}
+
+.table th {
+    font-weight: 500;
+    padding: 1.1rem 1.25rem;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    padding: 1.1rem 1.25rem;
+    vertical-align: middle;
+    border-top: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.table tbody tr {
+    transition: all 0.25s ease;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: rgba(230, 240, 255, 0.2);
+}
+
+.table tbody tr:hover {
+    background-color: var(--electro-light);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.btn-electro {
+    background: var(--electro-gradient);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    box-shadow: 0 4px 6px rgba(26, 75, 140, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-electro::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: all 0.6s ease;
+}
+
+.btn-electro:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(26, 75, 140, 0.25);
+}
+
+.btn-electro:hover::before {
+    left: 100%;
+}
+
+.btn-back {
+    background: var(--secondary);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    box-shadow: 0 4px 6px rgba(108, 117, 125, 0.1);
+}
+
+.btn-back:hover {
+    background: #5a6268;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(108, 117, 125, 0.15);
+}
+
+.badge-electro {
+    background: var(--electro-light);
+    color: var(--electro-blue);
+    font-weight: 600;
+    padding: 0.4rem 0.9rem;
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 1px rgba(26, 75, 140, 0.2);
+}
+
+.search-box {
+    position: relative;
+    max-width: 400px;
+    transition: all 0.3s ease;
+}
+
+.search-box:focus-within {
+    transform: translateY(-1px);
+}
+
+.search-box i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--secondary);
+    transition: all 0.3s ease;
+}
+
+.search-box input {
+    padding-left: 45px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+    height: 45px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.search-box input:focus {
+    border-color: var(--electro-accent);
+    box-shadow: 0 0 0 0.25rem rgba(74, 144, 226, 0.25), 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.search-box:focus-within i {
+    color: var(--electro-accent);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.action-btn {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.action-btn:hover {
+    transform: scale(1.15);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.edit-btn {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.edit-btn:hover {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+}
+
+.delete-btn {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.delete-btn:hover {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+}
+
+.detail-btn {
+    background: rgba(23, 162, 184, 0.1);
+    color: var(--info);
+    border: 1px solid rgba(23, 162, 184, 0.2);
+}
+
+.detail-btn:hover {
+    background: var(--info);
+    color: white;
+    border-color: var(--info);
+}
+
+.price-cell {
+    font-weight: 700;
+    color: var(--electro-blue);
+    position: relative;
+    padding-left: 20px;
+}
+
+.price-cell::before {
+    content: 'S/';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8em;
+    opacity: 0.7;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    background: var(--electro-gradient);
+    color: white;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+    transform: rotate(30deg);
+    pointer-events: none;
+}
+
+.modal-title {
+    font-weight: 600;
+}
+
+.form-control,
+.form-select {
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--electro-accent);
+    box-shadow: 0 0 0 0.25rem rgba(74, 144, 226, 0.25);
+    transform: translateY(-1px);
+}
+
+.input-group-text {
+    background-color: var(--electro-light);
+    color: var(--electro-blue);
+    font-weight: 500;
+    border: 1px solid #dee2e6;
+}
+
+.empty-state {
+    padding: 3rem 0;
+    text-align: center;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" fill="none" stroke="%23e6f0ff" stroke-width="1.5"><rect x="15" y="25" width="70" height="60" rx="5"/><path d="M25 25L35 15H65L75 25"/><line x1="35" y1="45" x2="65" y2="45"/><line x1="35" y1="55" x2="65" y2="55"/><line x1="35" y1="65" x2="65" y2="65"/></svg>') center/contain no-repeat;
+}
+
+.empty-state i {
+    font-size: 3.5rem;
+    color: var(--electro-light);
+    margin-bottom: 1.5rem;
+    display: inline-block;
+    background: white;
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+    border-radius: 50%;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+}
+
+.floating-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1100;
+    animation: slideInRight 0.3s forwards, fadeOut 0.5s forwards 3s;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+    }
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.spinner {
+    width: 70px;
+    height: 70px;
+    border: 8px solid var(--electro-light);
+    border-top-color: var(--electro-accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Efectos de hover avanzados */
+.hover-grow {
+    transition: transform 0.3s ease;
+}
+
+.hover-grow:hover {
+    transform: scale(1.03);
+}
+
+.hover-float {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-float:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive mejorado */
+@media (max-width: 992px) {
+    .dashboard-container {
+        padding: 1.5rem;
+        margin: 1rem;
+        border-radius: 12px;
+    }
+
+    .company-logo {
+        height: 70px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1rem;
+    }
+
+    .table-responsive {
+        border: none;
+        margin: 0 -1rem;
+        width: calc(100% + 2rem);
+    }
+
+    .table th,
+    .table td {
+        padding: 0.75rem;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+    .search-box {
+        margin-top: 1rem;
+        width: 100%;
+        max-width: 100%;
+    }
+}

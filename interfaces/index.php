@@ -1,6 +1,6 @@
 <?php
-require "Controllers/Conexion.php";
-require "authMiddleware.php";   
+require "../Controllers/Conexion.php";
+require "../middleware/authMiddleware.php";   
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -12,15 +12,15 @@ require "authMiddleware.php";
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    
-    <link rel="stylesheet" href="Styles/index.css">
+    <link rel="stylesheet" href="../Styles/index.css">
 </head>
 <body>
     <div class="container">
         <div class="login-container">
             <div class="logo-container">
-                <img src="assets/logo1-original.png" alt="ElectroTop Logo" class="logo-img">
+                <img src="../assets/logo1-original.png" alt="ElectroTop Logo" class="logo-img">
             </div>
-            <form action="Login.php" method="post">
+            <form action="../Controllers/Login.php" method="post">
                 <div class="mb-3">
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-user"></i></span>
@@ -43,6 +43,6 @@ require "authMiddleware.php";
     <!-- Bootstrap 5 JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Add some 3D hover effect to the logo -->
-    <script src="Js/index.js"></script>
+    <script src="../Js/index.js"></script>
 </body>
 </html>

@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
         }
     }
-    header("Location: GestionProductos.php");
+    header("Location: ../interfaces/GestionProductos.php");
     exit;
 }
 

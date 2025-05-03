@@ -1,5 +1,5 @@
 <?php
-require "Controllers/Conexion.php";
+require "Conexion.php";
 
 header('Content-Type: application/json');
 
